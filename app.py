@@ -14,6 +14,9 @@ from service.company.company_service import CompanyService
 from service.client.client_service import ClientService
 from service.ai.deepseek_service import DeepSeekService
 from service.review.review_service import ReviewService
+from service.competitor.competitor_service import CompetitorService
+from service.analytics.gap_service import ReviewGapService
+from service.report.monthly_report_service import MonthlyReportService
 
 load_dotenv()
 
@@ -48,9 +51,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Client Review Request AI Service",
-    description="FastAPI service that fetches company and client details from MongoDB and uses DeepSeek AI to generate polite review request messages.",
-    version="1.0.0",
+    title="Client Review & Competitor AI Intelligence Platform",
+    description="FastAPI service powered by DeepSeek AI and MongoDB for review requests, automated competitor intelligence, review gap analysis, and visual monthly reports.",
+    version="2.0.0",
     lifespan=lifespan
 )
 
@@ -63,7 +66,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Service instances
+# Core Service instances
 company_service = CompanyService()
 client_service = ClientService()
 ai_service = DeepSeekService()
@@ -72,6 +75,9 @@ review_service = ReviewService(
     client_service=client_service,
     ai_service=ai_service
 )
+competitor_service = CompetitorService(ai_service=ai_service)
+gap_service = ReviewGapService(ai_service=ai_service)
+monthly_report_service = MonthlyReportService(ai_service=ai_service)
 
 
 # ==============================================================================
@@ -92,6 +98,57 @@ class ReviewMessageRequest(BaseModel):
     )
 
 
+class CompetitorIntelligenceRequest(BaseModel):
+    """Payload for competitor intelligence & automated competitor discovery."""
+    business_id: str = Field(
+        ...,
+        description="MongoDB ObjectId of the business",
+        example="6ac0774ee0c1a4a1692696ce"
+    )
+    radius_miles: Optional[int] = Field(
+        5,
+        description="Radius in miles to search for competitors (e.g. 5, 10)",
+        example=5
+    )
+    limit: Optional[int] = Field(
+        None,
+        description="Number of competitors (3, 5, or 10 based on subscription plan)",
+        example=5
+    )
+    auto_identify: Optional[bool] = Field(
+        False,
+        description="Whether to use DeepSeek AI to automatically identify new local competitors",
+        example=False
+    )
+
+
+class ReviewGapRequest(BaseModel):
+    """Payload for review gap and competitive comparison analysis."""
+    business_id: str = Field(
+        ...,
+        description="MongoDB ObjectId of the business",
+        example="6ac0774ee0c1a4a1692696ce"
+    )
+
+
+class MonthlyReportRequest(BaseModel):
+    """Payload for monthly growth AI email report generation."""
+    business_id: str = Field(
+        ...,
+        description="MongoDB ObjectId of the business",
+        example="6ac0774ee0c1a4a1692696ce"
+    )
+    month: Optional[str] = Field(
+        None,
+        description="Month name for the report (e.g. 'October')",
+        example="October"
+    )
+    year: Optional[int] = Field(
+        None,
+        description="Year for the report (e.g. 2026)",
+        example=2026
+    )
+
 
 class PreviewMessageRequest(BaseModel):
     """Payload for previewing message directly without querying database IDs."""
@@ -107,7 +164,7 @@ class PreviewMessageRequest(BaseModel):
 
 
 # ==============================================================================
-# SECTION 4: API ROUTES (3 ESSENTIAL ENDPOINTS)
+# SECTION 4: API ROUTES
 # ==============================================================================
 
 # Route 1: Health Check
@@ -128,7 +185,7 @@ async def health_check():
     }
 
 
-# Route 2: Generate Review Request (Core Endpoint)
+# Route 2: Generate Review Request Message
 @app.post(
     "/api/generate-review-message",
     tags=["Review Generator"],
@@ -136,7 +193,6 @@ async def health_check():
 )
 async def generate_review_message(payload: ReviewMessageRequest):
     """
-    Core business endpoint:
     1. Fetches company information from MongoDB using company_id.
     2. Fetches client information from MongoDB using client_id.
     3. Prompts DeepSeek AI to generate a polite, engaging review request message.
@@ -157,7 +213,91 @@ async def generate_review_message(payload: ReviewMessageRequest):
         )
 
 
-# Route 3: Preview Message (Direct Test Endpoint)
+# Route 3: Competitor Intelligence & Identification
+@app.post(
+    "/api/competitors/intelligence",
+    tags=["Competitor Intelligence"],
+    summary="Get competitor intelligence and automated competitor discovery"
+)
+async def get_competitor_intelligence(payload: CompetitorIntelligenceRequest):
+    """
+    Analyzes local competitors within radius (5-10 miles) based on business category & location.
+    Calculates review volumes, growth rates, market positioning, and provides AI strategic summary.
+    """
+    try:
+        result = await competitor_service.get_competitor_intelligence(
+            business_id=payload.business_id,
+            radius_miles=payload.radius_miles or 5,
+            limit=payload.limit,
+            auto_identify=payload.auto_identify or False
+        )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Unexpected error fetching competitor intelligence: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch competitor intelligence: {str(e)}"
+        )
+
+
+# Route 4: Review Gap Analysis
+@app.post(
+    "/api/review-gap/analyze",
+    tags=["Review Gap Analysis"],
+    summary="Analyze review gap compared to competitors"
+)
+async def analyze_review_gap(payload: ReviewGapRequest):
+    """
+    Compares client's review volume, rating, and growth percentage with nearby competitors.
+    Returns gap percentage (+/- Ahead or Behind) and DeepSeek AI strategic action plan.
+    """
+    try:
+        result = await gap_service.analyze_review_gap(business_id=payload.business_id)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Unexpected error analyzing review gap: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to analyze review gap: {str(e)}"
+        )
+
+
+# Route 5: Monthly AI Growth Report
+@app.post(
+    "/api/reports/monthly-growth",
+    tags=["Monthly AI Report"],
+    summary="Generate visual & motivational monthly growth report"
+)
+async def generate_monthly_growth_report(payload: MonthlyReportRequest):
+    """
+    Generates monthly summary report featuring:
+    - New reviews gained this month
+    - Total NFC taps recorded
+    - Competitor rank position
+    - DeepSeek AI visual & motivational email summary (🟢 Green signal, 👍 Thumbs up, etc.)
+    """
+    try:
+        result = await monthly_report_service.generate_monthly_report(
+            business_id=payload.business_id,
+            month=payload.month,
+            year=payload.year
+        )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Unexpected error generating monthly report: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate monthly report: {str(e)}"
+        )
+
+
+# Route 6: Preview Message (Direct Test Endpoint)
 @app.post(
     "/api/preview-message",
     tags=["Review Generator"],

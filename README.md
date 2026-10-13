@@ -116,18 +116,16 @@ Once started, the service will be available at:
 
 ---
 
-## 📡 API Reference (3 Core Endpoints)
+## 📡 API Reference
 
 ### 1. Health Check
 **`GET /health`**
-
 Verifies server status, MongoDB connection, and DeepSeek API key configuration.
 
 ---
 
-### 2. Generate Review Request Message (Core Endpoint)
+### 2. Generate Review Request Message
 **`POST /api/generate-review-message`**
-
 Fetches company info (`BusinessProfile`) and client info (`Campaign`) from MongoDB using their respective IDs, and uses DeepSeek AI to generate a polite review request message.
 
 #### Request Body:
@@ -138,50 +136,57 @@ Fetches company info (`BusinessProfile`) and client info (`Campaign`) from Mongo
 }
 ```
 
-#### Response Example:
+---
+
+### 3. Competitor Intelligence & Automated Discovery
+**`POST /api/competitors/intelligence`**
+Analyzes competitor review volumes, growth rates, market positioning, and uses DeepSeek AI to identify competitors within radius (5-10 miles).
+
+#### Request Body:
 ```json
 {
-  "success": true,
-  "generated_message": "Hi Sarah! Thanks for dining with us at Bella's Cafe House. We'd love to hear about your experience. Your feedback helps us improve and support our team. Please leave a quick review here: https://g.page/r/CbellascafeABCDEFG Thank you!",
-  "company": {
-    "id": "6ac0774ee0c1a4a1692696ce",
-    "name": "Bella's Cafe House",
-    "category": "Cafe / Restaurant",
-    "review_url": "https://g.page/r/CbellascafeABCDEFG"
-  },
-  "client": {
-    "id": "6ac0866de0c1a4a1692696d8",
-    "name": "Sarah Mitchell",
-    "phone": "+1 (555) 201-8992",
-    "email": null,
-    "channel": "SMS"
-  },
-  "metadata": {
-    "ai_model": "deepseek-chat",
-    "tokens_used": 145,
-    "channel": "SMS",
-    "tone": "friendly and polite",
-    "language": "English"
-  }
+  "business_id": "6ac0774ee0c1a4a1692696ce",
+  "radius_miles": 5,
+  "limit": 5,
+  "auto_identify": false
 }
 ```
 
 ---
 
-### 3. Preview Message (Direct Test without Database)
-**`POST /api/preview-message`**
+### 4. Review Gap Analysis
+**`POST /api/review-gap/analyze`**
+Compares your business review metrics with competitors (gap %, growth difference, timeline chart) and generates actionable DeepSeek AI strategic recommendations.
 
-Allows instant message testing with custom company and client details without needing MongoDB ObjectIds:
-
+#### Request Body:
 ```json
 {
-  "company_name": "Sunrise Dental Clinic",
-  "company_category": "Healthcare",
-  "review_url": "https://g.page/r/sunrise-dental",
-  "client_name": "David Miller",
-  "service_name": "Dental Cleaning",
-  "channel": "SMS"
+  "business_id": "6ac0774ee0c1a4a1692696ce"
 }
 ```
 
-"# Google_AI_Review" 
+---
+
+### 5. Monthly AI Growth Report
+**`POST /api/reports/monthly-growth`**
+Generates an attractive, motivational email summary report featuring:
+- New reviews gained this month
+- Total NFC card taps
+- Market rank position vs competitors
+- DeepSeek AI visual summary with emojis (🟢, 👍, 🚀, 🏆)
+
+#### Request Body:
+```json
+{
+  "business_id": "6ac0774ee0c1a4a1692696ce",
+  "month": "October",
+  "year": 2026
+}
+```
+
+---
+
+### 6. Preview Message (Direct Test without Database)
+**`POST /api/preview-message`**
+Allows instant review message testing with custom details without requiring MongoDB ObjectIds.
+ 
