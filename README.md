@@ -75,7 +75,7 @@ DEEPSEEK_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
 DATABASE_URL="mongodb+srv://<user>:<password>@cluster0.bls3tyg.mongodb.net/mehdit111_DB?appName=Cluster0"
 DATABASE_NAME="mehdit111_DB"
 PORT=2000
-HOST="0.0.0.0"
+HOST="127.0.1.0"
 DEEPSEEK_BASE_URL="https://api.deepseek.com"
 DEEPSEEK_MODEL="deepseek-chat"
 ```
@@ -91,13 +91,28 @@ python app.py
 
 ### Option 2: Run with Uvicorn
 ```powershell
-uvicorn app:app --host 0.0.0.0 --port 2000 --reload
+uvicorn app:app --host 127.0.1.0 --port 2000 --reload
+```
+
+### Option 3: Run with Docker Compose (Multi-stage build)
+```powershell
+docker compose up -d --build
+```
+To check container status and logs:
+```powershell
+docker compose ps
+docker compose logs -f
+```
+To stop the container:
+```powershell
+docker compose down
 ```
 
 Once started, the service will be available at:
-- **Base URL**: `http://localhost:2000`
-- **Interactive Swagger Docs**: [http://localhost:2000/docs](http://localhost:2000/docs)
-- **ReDoc Documentation**: [http://localhost:2000/redoc](http://localhost:2000/redoc)
+- **Base URL**: `http://127.0.1.0:2000`
+- **Interactive Swagger Docs**: [http://127.0.1.0:2000/docs](http://127.0.1.0:2000/docs)
+- **ReDoc Documentation**: [http://127.0.1.0:2000/redoc](http://127.0.1.0:2000/redoc)
+
 
 ---
 
@@ -119,12 +134,7 @@ Fetches company info (`BusinessProfile`) and client info (`Campaign`) from Mongo
 ```json
 {
   "company_id": "6ac0774ee0c1a4a1692696ce",
-  "client_id": "6ac0866de0c1a4a1692696d8",
-  "service_name": "Lunch & Coffee",
-  "channel": "SMS",
-  "tone": "friendly and polite",
-  "language": "English",
-  "custom_instructions": "Keep it under 160 characters"
+  "client_id": "6ac0866de0c1a4a1692696d8"
 }
 ```
 

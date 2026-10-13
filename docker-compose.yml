@@ -1,0 +1,20 @@
+services:
+  review-ai-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: review_ai_service
+    restart: unless-stopped
+    ports:
+      - "127.0.1.0:2000:2000"
+    env_file:
+      - .env
+    environment:
+      - PORT=2000
+      - HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

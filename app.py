@@ -90,31 +90,7 @@ class ReviewMessageRequest(BaseModel):
         description="MongoDB ObjectId of the client (from Campaign collection)",
         example="6ac0866de0c1a4a1692696d8"
     )
-    service_name: Optional[str] = Field(
-        None,
-        description="Optional name of the service availed (e.g. 'Lunch & Coffee')",
-        example="Lunch & Coffee"
-    )
-    channel: Optional[str] = Field(
-        "SMS",
-        description="Communication channel: 'SMS', 'WhatsApp', or 'Email'",
-        example="SMS"
-    )
-    tone: Optional[str] = Field(
-        "friendly and polite",
-        description="Desired message tone (e.g. 'friendly', 'polite', 'casual', 'formal')",
-        example="friendly and polite"
-    )
-    language: Optional[str] = Field(
-        "English",
-        description="Language for the message (e.g. 'English', 'Bengali')",
-        example="English"
-    )
-    custom_instructions: Optional[str] = Field(
-        None,
-        description="Optional extra instructions for AI generation",
-        example="Keep it short and warm"
-    )
+
 
 
 class PreviewMessageRequest(BaseModel):
@@ -168,12 +144,7 @@ async def generate_review_message(payload: ReviewMessageRequest):
     try:
         result = await review_service.generate_review_request(
             company_id=payload.company_id,
-            client_id=payload.client_id,
-            service_name=payload.service_name,
-            channel=payload.channel,
-            tone=payload.tone,
-            language=payload.language,
-            custom_instructions=payload.custom_instructions
+            client_id=payload.client_id
         )
         return result
     except HTTPException:
@@ -238,6 +209,6 @@ async def preview_message(payload: PreviewMessageRequest):
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 2000))
-    host = os.getenv("HOST", "0.0.0.0")
+    host = os.getenv("HOST", "127.0.1.0")
     print(f"Starting FastAPI server on http://{host}:{port} ...")
     uvicorn.run("app:app", host=host, port=port, reload=True)

@@ -1,23 +1,27 @@
-.git
-.gitignore
-.dockerignore
-Dockerfile
-
-.env
-.env.*
-
-venv/
-.venv/
 __pycache__/
 *.py[cod]
-*.pyo
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
+.git/
+.gitignore
+.idea/
+.vscode/
+*.md
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
+.coverage
+htmlcov/
 *.log
-*.sqlite
-*.db
 
-README.md
+# Do not bake secrets into image
+.env
+.env.local
+.env.*.local
+secrets.txt
+api_keys.txt
